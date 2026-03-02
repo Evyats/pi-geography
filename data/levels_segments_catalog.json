@@ -288,8 +288,8 @@
     },
     {
       "key": "seg_6",
-      "label": "80",
-      "increment_count": 30,
+      "label": "60",
+      "increment_count": 10,
       "cities": [
         {
           "id": "osm_r_1380001",
@@ -340,7 +340,14 @@
           "id": "osm_r_10521583",
           "name_he": "א-זהראא",
           "population": null
-        },
+        }
+      ]
+    },
+    {
+      "key": "seg_7",
+      "label": "80",
+      "increment_count": 20,
+      "cities": [
         {
           "id": "osm_r_1381564",
           "name_he": "אבו גוש",
@@ -444,7 +451,7 @@
       ]
     },
     {
-      "key": "seg_7",
+      "key": "seg_8",
       "label": "110",
       "increment_count": 30,
       "cities": [
@@ -601,7 +608,7 @@
       ]
     },
     {
-      "key": "seg_8",
+      "key": "seg_9",
       "label": "140",
       "increment_count": 30,
       "cities": [
@@ -758,7 +765,7 @@
       ]
     },
     {
-      "key": "seg_9",
+      "key": "seg_10",
       "label": "170",
       "increment_count": 30,
       "cities": [
@@ -915,7 +922,7 @@
       ]
     },
     {
-      "key": "seg_10",
+      "key": "seg_11",
       "label": "200",
       "increment_count": 30,
       "cities": [
@@ -1072,7 +1079,7 @@
       ]
     },
     {
-      "key": "seg_11",
+      "key": "seg_12",
       "label": "222",
       "increment_count": 22,
       "cities": [

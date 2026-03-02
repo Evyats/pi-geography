@@ -5,7 +5,6 @@ import { motion } from "motion/react";
 
 import { MapSection } from "@/components/game/MapSection";
 import { SidebarPanel } from "@/components/game/SidebarPanel";
-import { Button } from "@/components/ui/button";
 import { INITIAL_CENTER, INITIAL_ZOOM, containerMotion } from "@/game/constants";
 import { colorFromIndex } from "@/game/map-coloring";
 import type { LocalityFeature } from "@/game/types";
@@ -147,7 +146,7 @@ export default function App() {
       }}
     >
       <motion.main
-        className="mx-auto grid h-full max-w-[1800px] grid-cols-1 grid-rows-[minmax(0,1.2fr)_minmax(0,1fr)] gap-2 overflow-hidden sm:gap-3 lg:grid-cols-[1.9fr_minmax(320px,420px)] lg:grid-rows-1"
+        className="relative mx-auto grid h-full max-w-[1800px] grid-cols-1 grid-rows-1 gap-2 overflow-hidden sm:gap-3 lg:grid-cols-[1.9fr_minmax(320px,420px)]"
         variants={containerMotion}
         initial="hidden"
         animate="show"
@@ -169,76 +168,66 @@ export default function App() {
           mapDataset={mapDataset}
           styleFeature={styleFeature}
           onCityClick={handleCityClick}
-        />
-
-        <SidebarPanel
-          leftScreen={leftScreen}
           isDarkMode={isDarkMode}
           onToggleTheme={() => setIsDarkMode((prev) => !prev)}
-          settings={settings}
-          currentPoolLength={currentPool.length}
-          segmentMinCount={segmentMinCount}
-          segmentMaxCount={segmentMaxCount}
-          usingSegmentedDifficulty={usingSegmentedDifficulty}
-          segmentOptions={segmentOptions}
-          onDifficultySegmentChange={(segmentIndex) =>
-            setSettings((prev) => ({
-              ...prev,
-              difficultySegmentIndex: segmentIndex,
-            }))
-          }
-          onToggleCityList={() => setShowCityList((prev) => !prev)}
-          onSetIncludeTerritories={(includeTerritories) =>
-            setSettings((prev) => ({ ...prev, includeTerritories }))
-          }
-          startDisabled={startDisabled}
-          warningText={warningText}
-          onStartGame={() => {
-            closeCityListAndResetSearch();
-            onStartGame(startDisabled);
-          }}
-          currentTargetName={currentTargetName}
-          questionText={questionText}
-          feedbackText={feedbackText}
-          feedbackTone={feedbackTone}
-          showContinueHint={showContinueHint && session.status === "locked"}
-          onStopGame={() => {
-            closeCityListAndResetSearch();
-            onStopGame();
-          }}
-          score={session.score}
-          onGoHome={() => {
-            closeCityListAndResetSearch();
-            goToHomeScreen();
-          }}
-          onReplay={() => {
-            closeCityListAndResetSearch();
-            onReplayCurrentSettings(startDisabled);
-          }}
-          showCityList={showCityList}
-          citySearch={citySearch}
-          onCitySearchChange={setCitySearch}
-          cityEntriesForCurrentSettingsCount={cityEntriesForCurrentSettings.length}
-          displayedCityEntries={displayedCityEntries}
-          bestMatchedCityId={bestMatchedCityId}
-          onCloseCityList={() => setShowCityList(false)}
         />
+
+        <div className="pointer-events-none absolute inset-x-1.5 bottom-1.5 z-[1200] max-h-[66dvh] overflow-hidden lg:static lg:inset-auto lg:z-auto lg:max-h-none">
+          <div className="w-full">
+            <SidebarPanel
+              leftScreen={leftScreen}
+              settings={settings}
+              currentPoolLength={currentPool.length}
+              segmentMinCount={segmentMinCount}
+              segmentMaxCount={segmentMaxCount}
+              usingSegmentedDifficulty={usingSegmentedDifficulty}
+              segmentOptions={segmentOptions}
+              onDifficultySegmentChange={(segmentIndex) =>
+                setSettings((prev) => ({
+                  ...prev,
+                  difficultySegmentIndex: segmentIndex,
+                }))
+              }
+              onToggleCityList={() => setShowCityList((prev) => !prev)}
+              onSetIncludeTerritories={(includeTerritories) =>
+                setSettings((prev) => ({ ...prev, includeTerritories }))
+              }
+              startDisabled={startDisabled}
+              warningText={warningText}
+              onStartGame={() => {
+                closeCityListAndResetSearch();
+                onStartGame(startDisabled);
+              }}
+              currentTargetName={currentTargetName}
+              questionText={questionText}
+              feedbackText={feedbackText}
+              feedbackTone={feedbackTone}
+              showContinueHint={showContinueHint && session.status === "locked"}
+              onStopGame={() => {
+                closeCityListAndResetSearch();
+                onStopGame();
+              }}
+              score={session.score}
+              onGoHome={() => {
+                closeCityListAndResetSearch();
+                goToHomeScreen();
+              }}
+              onReplay={() => {
+                closeCityListAndResetSearch();
+                onReplayCurrentSettings(startDisabled);
+              }}
+              showCityList={showCityList}
+              citySearch={citySearch}
+              onCitySearchChange={setCitySearch}
+              cityEntriesForCurrentSettingsCount={cityEntriesForCurrentSettings.length}
+              displayedCityEntries={displayedCityEntries}
+              bestMatchedCityId={bestMatchedCityId}
+              onCloseCityList={() => setShowCityList(false)}
+            />
+          </div>
+        </div>
       </motion.main>
 
-      {leftScreen === "home" && !showCityList ? (
-        <div className="pointer-events-none fixed left-1/2 top-1/2 z-[1300] -translate-x-1/2 -translate-y-1/2 sm:hidden">
-          <Button
-            id="city-list-toggle-btn-mobile-floating"
-            variant="secondary"
-            size="lg"
-            className="pointer-events-auto h-12 rounded-full px-6 font-semibold shadow-[0_12px_32px_rgba(0,0,0,0.28)]"
-            data-no-continue="true"
-            onClick={() => setShowCityList(true)}
-          >
-            הצג רשימת ערים
-          </Button>
-        </div>
-      ) : null}
     </motion.div>
   );
 }

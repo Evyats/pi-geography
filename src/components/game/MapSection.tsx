@@ -1,9 +1,11 @@
 ﻿import { useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import type { GeoJsonObject } from "geojson";
 import { geoJSON as leafletGeoJson, latLngBounds, type Map as LeafletMap } from "leaflet";
+import { Moon, Sun } from "lucide-react";
 import { GeoJSON, MapContainer, TileLayer, useMapEvents } from "react-leaflet";
-import { motion } from "motion/react";
+import { AnimatePresence, motion } from "motion/react";
 
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cardMotion } from "@/game/constants";
 import type { LocalityFeature, SessionState } from "@/game/types";
@@ -22,6 +24,8 @@ type MapSectionProps = {
   mapDataset: GeoJsonObject;
   styleFeature: (feature?: LocalityFeature) => Record<string, unknown>;
   onCityClick: (featureId: string) => void;
+  isDarkMode: boolean;
+  onToggleTheme: () => void;
 };
 
 function MapEvents({
@@ -60,6 +64,8 @@ export function MapSection({
   mapDataset,
   styleFeature,
   onCityClick,
+  isDarkMode,
+  onToggleTheme,
 }: MapSectionProps) {
   const featureById = useMemo(() => {
     const map = new Map<string, LocalityFeature>();
@@ -155,6 +161,46 @@ export function MapSection({
 
   return (
     <motion.section variants={cardMotion} className="relative min-h-0 overflow-hidden rounded-3xl border border-transparent bg-transparent">
+      <div className="absolute left-[58px] top-[10px] z-[500] sm:left-[60px] sm:top-[10px]">
+        <Button
+          type="button"
+          variant="secondary"
+          size="icon"
+          className="h-10 w-10 rounded-[16px] border-0 bg-white/90 shadow-[0_10px_24px_rgba(15,44,82,0.22)] hover:bg-white/95 dark:bg-[rgba(13,27,43,0.92)] dark:text-[#6ac4ff] dark:shadow-[0_10px_24px_rgba(5,17,33,0.5)] dark:hover:bg-[rgba(20,42,68,0.96)]"
+          aria-label={isDarkMode ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
+          data-no-continue="true"
+          onClick={onToggleTheme}
+        >
+          <span className="relative block h-4 w-4 overflow-hidden">
+            <AnimatePresence mode="wait" initial={false}>
+              {isDarkMode ? (
+                <motion.span
+                  key="sun"
+                  className="absolute inset-0"
+                  initial={{ y: -20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 20, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  <Sun className="h-4 w-4" />
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="moon"
+                  className="absolute inset-0"
+                  initial={{ y: -20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 20, opacity: 0 }}
+                  transition={{ duration: 0.2, ease: "easeOut" }}
+                >
+                  <Moon className="h-4 w-4" />
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </span>
+        </Button>
+      </div>
+
       {showStats ? (
         <div className="absolute right-2 top-2 z-[500] flex gap-2 sm:right-3 sm:top-3">
           <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }}>
@@ -194,7 +240,7 @@ export function MapSection({
         </div>
       ) : null}
 
-      <MapContainer center={mapCenter} zoom={mapZoom} minZoom={6} maxZoom={13} className="h-full min-h-0" ref={mapRef}>
+      <MapContainer center={mapCenter} zoom={mapZoom} minZoom={6} maxZoom={13} attributionControl={false} className="h-full min-h-0" ref={mapRef}>
         <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
         <MapEvents onMove={onMapMove} />
         <MapResizeController trigger={showCityList} />

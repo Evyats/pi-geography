@@ -1,7 +1,8 @@
 
-modify map to not include city names and roads
-
 segmentation all around israel for removing everything out of israel
 
+a different layout for mobile version - all game settings are on the map, the whole screen is basically the map with some buttons on it.
 
+add another difficulty jump
 
+improve the definition of the difficulties - so there is separation between storing of the ids of each city, segmentations, name, and population size, and the actual difficulties definition itself - so the user need only to move around the names of the cities and not all the ancilliary data.

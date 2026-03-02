@@ -1,6 +1,5 @@
 ﻿import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "motion/react";
-import { Moon, Sun } from "lucide-react";
 
 import { CityListModal } from "@/components/game/CityListModal";
 import { SetupControls } from "@/components/game/SetupControls";
@@ -11,8 +10,6 @@ type Screen = "home" | "play" | "end";
 
 type SidebarPanelProps = {
   leftScreen: Screen;
-  isDarkMode: boolean;
-  onToggleTheme: () => void;
   settings: SettingsState;
   currentPoolLength: number;
   segmentMinCount: number;
@@ -45,8 +42,6 @@ type SidebarPanelProps = {
 
 export function SidebarPanel({
   leftScreen,
-  isDarkMode,
-  onToggleTheme,
   settings,
   currentPoolLength,
   segmentMinCount,
@@ -85,56 +80,28 @@ export function SidebarPanel({
   }, [screen]);
 
   return (
-    <section ref={sectionRef} className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-3xl border border-white/20 bg-white/50 p-3 backdrop-blur-sm sm:gap-3 sm:p-4 dark:bg-white/10">
-      <header className="relative text-center">
-        <div className="absolute left-0 top-0">
-          <motion.div whileTap={{ scale: 0.92 }} whileHover={{ scale: 1.05 }}>
-            <Button
-              type="button"
-              variant="secondary"
-              size="icon"
-              aria-label={isDarkMode ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
-              data-no-continue="true"
-              onClick={onToggleTheme}
-            >
-              <span className="relative block h-4 w-4 overflow-hidden">
-                <AnimatePresence mode="wait" initial={false}>
-                  {isDarkMode ? (
-                    <motion.span
-                      key="sun"
-                      className="absolute inset-0"
-                      initial={{ y: -20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: 22, opacity: 0 }}
-                      transition={{ duration: 0.18, ease: "easeOut" }}
-                    >
-                      <Sun className="h-4 w-4" />
-                    </motion.span>
-                  ) : (
-                    <motion.span
-                      key="moon"
-                      className="absolute inset-0"
-                      initial={{ y: -20, opacity: 0 }}
-                      animate={{ y: 0, opacity: 1 }}
-                      exit={{ y: 22, opacity: 0 }}
-                      transition={{ duration: 0.18, ease: "easeOut" }}
-                    >
-                      <Moon className="h-4 w-4" />
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </span>
-            </Button>
+    <section
+      ref={sectionRef}
+      className="pointer-events-none flex min-h-0 flex-col gap-2 overflow-y-auto p-0 sm:gap-3 lg:pointer-events-auto lg:rounded-3xl lg:border lg:border-white/20 lg:bg-white/50 lg:p-4 lg:backdrop-blur-sm dark:lg:bg-white/10"
+    >
+      <header className="pointer-events-none relative px-3 text-center lg:px-0">
+        {screen === "home" ? (
+          <motion.div
+            className="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-full border border-primary/65 bg-primary/45 text-xl lg:hidden"
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+          >
+            📍
           </motion.div>
-        </div>
+        ) : null}
         <motion.div
-          className="mx-auto mb-2 grid h-12 w-12 place-items-center rounded-full border border-primary/40 bg-primary/20 text-xl sm:mb-3 sm:h-14 sm:w-14 sm:text-2xl"
+          className="mx-auto mb-3 hidden h-14 w-14 place-items-center rounded-full border border-primary/40 bg-primary/20 text-2xl lg:grid"
           animate={{ y: [0, -8, 0] }}
           transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
         >
           📍
         </motion.div>
-        <h1 className="hidden text-3xl font-extrabold sm:block sm:text-4xl">משחק מיקום ערים בישראל</h1>
+        <h1 className="hidden text-4xl font-extrabold lg:block">משחק מיקום ערים בישראל</h1>
       </header>
 
       <AnimatePresence mode="wait" initial={false}>
@@ -160,7 +127,7 @@ export function SidebarPanel({
                 onSetIncludeTerritories={onSetIncludeTerritories}
               />
               <div className="grid justify-center gap-2">
-                <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }}>
+                <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} className="pointer-events-auto">
                   <Button
                     size="lg"
                     className="h-14 w-full max-w-[340px] rounded-full bg-gradient-to-l from-primary to-cyan-400 px-4 text-lg font-extrabold shadow-[0_14px_30px_rgba(34,145,255,0.32)] hover:from-primary/95 hover:to-cyan-400/95"
@@ -171,15 +138,15 @@ export function SidebarPanel({
                     התחל משחק
                   </Button>
                 </motion.div>
-                <p className="min-h-5 text-center text-sm text-[#ff9f9f]">{warningText}</p>
+                <p className="min-h-3 text-center text-sm text-[#ff9f9f]">{warningText}</p>
               </div>
             </>
           ) : null}
 
           {screen === "play" ? (
             <>
-              <div className="space-y-3 px-1 text-ink">
-                <div className="rounded-3xl border border-primary/30 bg-white/80 p-4 text-center dark:bg-black/25">
+              <div className="flex flex-col gap-3 px-1 text-ink">
+                <div className="order-2 rounded-3xl border border-primary/30 bg-white/80 p-4 text-center sm:order-1 dark:bg-black/60">
                   <p className="text-sm font-semibold text-ink/75">מצאו את העיר:</p>
                   <p className="mt-1 text-3xl font-extrabold tracking-tight text-primary">
                     {(currentTargetName ?? questionText) || "טוען סיבוב..."}
@@ -187,21 +154,21 @@ export function SidebarPanel({
                   <div className="mx-auto mt-2 h-1 w-12 rounded-full bg-primary/70" />
                 </div>
 
-                <div className="min-h-[62px] text-center">
+                <div className="order-1 flex min-h-[44px] items-center justify-center sm:order-2">
                   <AnimatePresence mode="wait">
                     {showContinueHint ? (
-                      <motion.p
+                      <motion.div
                         key="continue-hint"
                         initial={{ opacity: 0, y: 6 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         transition={{ duration: 0.2, ease: "easeOut" }}
-                        className="mt-1 text-center text-sm font-medium text-ink/75"
+                        className="mx-auto inline-flex w-fit max-w-full rounded-2xl border border-primary/25 bg-white/85 px-3 py-2 text-center text-sm font-medium text-ink/80 shadow-[0_6px_16px_rgba(15,44,82,0.14)] dark:border-white/15 dark:bg-slate-900/70 dark:text-slate-200"
                       >
                         לחצו בכל מקום כדי להמשיך לסיבוב הבא
-                      </motion.p>
+                      </motion.div>
                     ) : feedbackText ? (
-                      <motion.p
+                      <motion.div
                         key={`feedback-${feedbackTone}-${feedbackText}`}
                         initial={{ opacity: 0, y: 8, scale: 0.98 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -209,14 +176,14 @@ export function SidebarPanel({
                         transition={{ duration: 0.22, ease: "easeOut" }}
                         className={
                           feedbackTone === "ok"
-                            ? "font-semibold text-[#3fe28a]"
+                            ? "mx-auto inline-flex w-fit max-w-full rounded-2xl border border-emerald-500/40 bg-white/85 px-3 py-2 text-center font-semibold text-emerald-700 shadow-[0_6px_16px_rgba(15,44,82,0.14)] dark:border-emerald-400/35 dark:bg-slate-900/70 dark:text-emerald-300"
                             : feedbackTone === "bad"
-                              ? "font-semibold text-[#ff6b6b]"
-                              : "font-semibold text-ink/80"
+                              ? "mx-auto inline-flex w-fit max-w-full rounded-2xl border border-red-500/40 bg-white/85 px-3 py-2 text-center font-semibold text-red-700 shadow-[0_6px_16px_rgba(15,44,82,0.14)] dark:border-red-400/35 dark:bg-slate-900/70 dark:text-red-300"
+                              : "mx-auto inline-flex w-fit max-w-full rounded-2xl border border-primary/25 bg-white/85 px-3 py-2 text-center font-semibold text-ink/85 dark:border-white/15 dark:bg-slate-900/70 dark:text-slate-200"
                         }
                       >
                         {feedbackText}
-                      </motion.p>
+                      </motion.div>
                     ) : (
                       <motion.p
                         key="feedback-empty"
@@ -232,7 +199,7 @@ export function SidebarPanel({
                 </div>
               </div>
 
-              <div className="grid justify-center gap-2">
+              <div className="pointer-events-auto grid justify-center gap-2">
                 <Button
                   size="lg"
                   variant="destructive"
@@ -248,17 +215,17 @@ export function SidebarPanel({
 
           {screen === "end" ? (
             <>
-              <div className="rounded-3xl border border-white/20 bg-black/10 p-4 text-center">
+              <div className="rounded-3xl border border-primary/30 bg-white/80 p-4 text-center dark:bg-black/60">
                 <p className="text-sm text-ink/75">תוצאת המשחק</p>
                 <p className="mt-2 text-3xl font-extrabold text-primary">{score}</p>
                 <p className="mt-1 text-sm text-ink/75">נקודות</p>
               </div>
-              <div className="grid justify-center gap-2">
+              <div className="pointer-events-auto grid justify-center gap-2">
                 <Button size="lg" className={wideButtonClass} data-no-continue="true" onClick={onGoHome}>
                   חזרה למסך הבית
                 </Button>
                 <Button size="lg" variant="secondary" className={wideButtonClass} data-no-continue="true" onClick={onReplay}>
-                  שחקו שוב עם אותן הגדרות
+                  שחקו שוב
                 </Button>
               </div>
             </>

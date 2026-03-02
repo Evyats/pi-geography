@@ -31,7 +31,7 @@ export function SetupControls({
   const sliderValue = Math.min(settings.difficultySegmentIndex, maxSegmentIndex);
 
   return (
-    <div className="px-4">
+    <div className="pointer-events-auto px-4">
       <Card className="rounded-3xl">
         <CardContent className="space-y-3 px-4 pb-4 pt-4">
           {usingSegmentedDifficulty ? (
@@ -81,11 +81,11 @@ export function SetupControls({
             id="city-list-toggle-btn"
             variant="secondary"
             size="lg"
-            className={`${showListButtonClass} hidden sm:inline-flex`}
+            className={showListButtonClass}
             data-no-continue="true"
             onClick={onToggleCityList}
           >
-            הצג רשימת הערים שנבחרה
+            הצג רשימת ערים
           </Button>
         </CardContent>
       </Card>
