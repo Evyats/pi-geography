@@ -1,12 +1,12 @@
 ﻿import { useEffect, useMemo, useRef, useState, type MutableRefObject } from "react";
 import type { GeoJsonObject } from "geojson";
 import { geoJSON as leafletGeoJson, latLngBounds, type Map as LeafletMap } from "leaflet";
-import { Moon, Sun } from "lucide-react";
 import { GeoJSON, MapContainer, TileLayer, useMapEvents } from "react-leaflet";
 import { AnimatePresence, motion } from "motion/react";
 
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { ProgressHudCard } from "@/components/game/map-hud/ProgressHudCard";
+import { ScoreHudCard } from "@/components/game/map-hud/ScoreHudCard";
+import { ThemeToggleMapButton } from "@/components/game/map-hud/ThemeToggleMapButton";
 import { cardMotion } from "@/game/constants";
 import type { LocalityFeature, SessionState } from "@/game/types";
 
@@ -161,84 +161,23 @@ export function MapSection({
 
   return (
     <motion.section variants={cardMotion} className="relative min-h-0 overflow-hidden rounded-3xl border border-transparent bg-transparent">
-      <div className="absolute left-[58px] top-[10px] z-[500] sm:left-[60px] sm:top-[10px]">
-        <Button
-          type="button"
-          variant="secondary"
-          size="icon"
-          className="h-10 w-10 rounded-[16px] border-0 bg-white/90 shadow-[0_10px_24px_rgba(15,44,82,0.22)] hover:bg-white/95 dark:bg-[rgba(13,27,43,0.92)] dark:text-[#6ac4ff] dark:shadow-[0_10px_24px_rgba(5,17,33,0.5)] dark:hover:bg-[rgba(20,42,68,0.96)]"
-          aria-label={isDarkMode ? "מעבר למצב בהיר" : "מעבר למצב כהה"}
-          data-no-continue="true"
-          onClick={onToggleTheme}
-        >
-          <span className="relative block h-4 w-4 overflow-hidden">
-            <AnimatePresence mode="wait" initial={false}>
-              {isDarkMode ? (
-                <motion.span
-                  key="sun"
-                  className="absolute inset-0"
-                  initial={{ y: -20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 20, opacity: 0 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                >
-                  <Sun className="h-4 w-4" />
-                </motion.span>
-              ) : (
-                <motion.span
-                  key="moon"
-                  className="absolute inset-0"
-                  initial={{ y: -20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  exit={{ y: 20, opacity: 0 }}
-                  transition={{ duration: 0.2, ease: "easeOut" }}
-                >
-                  <Moon className="h-4 w-4" />
-                </motion.span>
-              )}
-            </AnimatePresence>
-          </span>
-        </Button>
-      </div>
+      <ThemeToggleMapButton isDarkMode={isDarkMode} onToggleTheme={onToggleTheme} />
 
-      {showStats ? (
-        <div className="absolute right-2 top-2 z-[500] flex gap-2 sm:right-3 sm:top-3">
-          <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }}>
-            <Card className="h-[64px] min-w-[74px] rounded-[16px] border-0 bg-white/90 text-center shadow-[0_10px_24px_rgba(15,44,82,0.22)] sm:min-w-[88px] dark:bg-[rgba(13,27,43,0.92)] dark:shadow-[0_10px_24px_rgba(5,17,33,0.5)]">
-              <CardContent className="flex h-full flex-col items-center justify-center p-2">
-                <p className="text-xs text-ink/70">ניקוד</p>
-                <motion.p
-                  key={session.score}
-                  initial={{ scale: 0.92, opacity: 0.82 }}
-                  animate={{ scale: 1, opacity: 1 }}
-                  transition={{ duration: 0.26, ease: "easeOut" }}
-                  className="text-2xl font-bold text-primary"
-                >
-                  {displayScore}
-                </motion.p>
-              </CardContent>
-            </Card>
+      <AnimatePresence>
+        {showStats ? (
+          <motion.div
+            key="map-hud"
+            initial={{ opacity: 0, y: -8, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -8, scale: 0.98 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="absolute right-2 top-2 z-[500] flex gap-2 sm:right-3 sm:top-3"
+          >
+            <ScoreHudCard score={session.score} displayScore={displayScore} />
+            <ProgressHudCard roundProgressPct={roundProgressPct} />
           </motion.div>
-          <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }}>
-            <Card className="h-[64px] min-w-[118px] rounded-[16px] border-0 bg-white/90 shadow-[0_10px_24px_rgba(15,44,82,0.22)] sm:min-w-[138px] dark:bg-[rgba(13,27,43,0.92)] dark:shadow-[0_10px_24px_rgba(5,17,33,0.5)]">
-              <CardContent className="flex h-full flex-col justify-center p-2">
-                <div className="flex items-center justify-between text-xs text-ink/70">
-                  <span>התקדמות</span>
-                  <span className="font-semibold text-primary">{roundProgressPct}%</span>
-                </div>
-                <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-black/20">
-                  <motion.div
-                    className="h-full rounded-full bg-primary"
-                    initial={false}
-                    animate={{ width: `${roundProgressPct}%` }}
-                    transition={{ duration: 0.3 }}
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          </motion.div>
-        </div>
-      ) : null}
+        ) : null}
+      </AnimatePresence>
 
       <MapContainer center={mapCenter} zoom={mapZoom} minZoom={6} maxZoom={13} attributionControl={false} className="h-full min-h-0" ref={mapRef}>
         <TileLayer attribution='&copy; OpenStreetMap contributors' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />

@@ -11,7 +11,8 @@ export const DATA_FILES: Record<DatasetKey, string> = {
 };
 
 export const LEVELS_FILES = {
-  segmentsCatalog: "/data/levels_segments_catalog.json",
+  cityCatalog: "/data/cities_catalog.json",
+  segmentsByName: "/data/difficulty_segments_by_name.json",
 };
 
 export const USE_SEGMENTED_DIFFICULTY = true;

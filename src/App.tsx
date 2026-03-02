@@ -5,7 +5,8 @@ import { motion } from "motion/react";
 
 import { MapSection } from "@/components/game/MapSection";
 import { SidebarPanel } from "@/components/game/SidebarPanel";
-import { INITIAL_CENTER, INITIAL_ZOOM, containerMotion } from "@/game/constants";
+import { GameLayout } from "@/components/layout/GameLayout";
+import { INITIAL_CENTER, INITIAL_ZOOM } from "@/game/constants";
 import { colorFromIndex } from "@/game/map-coloring";
 import type { LocalityFeature } from "@/game/types";
 import { useCityListMapEffects } from "@/hooks/useCityListMapEffects";
@@ -145,88 +146,82 @@ export default function App() {
         continueAfterAnswer();
       }}
     >
-      <motion.main
-        className="relative mx-auto grid h-full max-w-[1800px] grid-cols-1 grid-rows-1 gap-2 overflow-hidden sm:gap-3 lg:grid-cols-[1.9fr_minmax(320px,420px)]"
-        variants={containerMotion}
-        initial="hidden"
-        animate="show"
-      >
-        <MapSection
-          showStats={leftScreen === "play"}
-          showHoverTooltips={leftScreen === "home"}
-          session={session}
-          roundProgressPct={roundProgressPct}
-          mapCenter={mapCenter}
-          mapZoom={mapZoom}
-          onMapMove={({ center, zoom }) => {
-            setMapCenter(center);
-            setMapZoom(zoom);
-          }}
-          mapRef={mapRef}
-          showCityList={showCityList}
-          geoJsonKey={`${activeDatasetKey}-${settings.difficultySegmentIndex}-${currentPool.length}-${session.currentIndex}-${session.selectedFeatureId ?? "none"}-${session.currentTargetId ?? "none"}`}
-          mapDataset={mapDataset}
-          styleFeature={styleFeature}
-          onCityClick={handleCityClick}
-          isDarkMode={isDarkMode}
-          onToggleTheme={() => setIsDarkMode((prev) => !prev)}
-        />
-
-        <div className="pointer-events-none absolute inset-x-1.5 bottom-1.5 z-[1200] max-h-[66dvh] overflow-hidden lg:static lg:inset-auto lg:z-auto lg:max-h-none">
-          <div className="w-full">
-            <SidebarPanel
-              leftScreen={leftScreen}
-              settings={settings}
-              currentPoolLength={currentPool.length}
-              segmentMinCount={segmentMinCount}
-              segmentMaxCount={segmentMaxCount}
-              usingSegmentedDifficulty={usingSegmentedDifficulty}
-              segmentOptions={segmentOptions}
-              onDifficultySegmentChange={(segmentIndex) =>
-                setSettings((prev) => ({
-                  ...prev,
-                  difficultySegmentIndex: segmentIndex,
-                }))
-              }
-              onToggleCityList={() => setShowCityList((prev) => !prev)}
-              onSetIncludeTerritories={(includeTerritories) =>
-                setSettings((prev) => ({ ...prev, includeTerritories }))
-              }
-              startDisabled={startDisabled}
-              warningText={warningText}
-              onStartGame={() => {
-                closeCityListAndResetSearch();
-                onStartGame(startDisabled);
-              }}
-              currentTargetName={currentTargetName}
-              questionText={questionText}
-              feedbackText={feedbackText}
-              feedbackTone={feedbackTone}
-              showContinueHint={showContinueHint && session.status === "locked"}
-              onStopGame={() => {
-                closeCityListAndResetSearch();
-                onStopGame();
-              }}
-              score={session.score}
-              onGoHome={() => {
-                closeCityListAndResetSearch();
-                goToHomeScreen();
-              }}
-              onReplay={() => {
-                closeCityListAndResetSearch();
-                onReplayCurrentSettings(startDisabled);
-              }}
-              showCityList={showCityList}
-              citySearch={citySearch}
-              onCitySearchChange={setCitySearch}
-              cityEntriesForCurrentSettingsCount={cityEntriesForCurrentSettings.length}
-              displayedCityEntries={displayedCityEntries}
-              bestMatchedCityId={bestMatchedCityId}
-              onCloseCityList={() => setShowCityList(false)}
-            />
-          </div>
-        </div>
-      </motion.main>
+      <GameLayout
+        map={
+          <MapSection
+            showStats={leftScreen === "play"}
+            showHoverTooltips={leftScreen === "home"}
+            session={session}
+            roundProgressPct={roundProgressPct}
+            mapCenter={mapCenter}
+            mapZoom={mapZoom}
+            onMapMove={({ center, zoom }) => {
+              setMapCenter(center);
+              setMapZoom(zoom);
+            }}
+            mapRef={mapRef}
+            showCityList={showCityList}
+            geoJsonKey={`${activeDatasetKey}-${settings.difficultySegmentIndex}-${currentPool.length}-${session.currentIndex}-${session.selectedFeatureId ?? "none"}-${session.currentTargetId ?? "none"}`}
+            mapDataset={mapDataset}
+            styleFeature={styleFeature}
+            onCityClick={handleCityClick}
+            isDarkMode={isDarkMode}
+            onToggleTheme={() => setIsDarkMode((prev) => !prev)}
+          />
+        }
+        panel={
+          <SidebarPanel
+            leftScreen={leftScreen}
+            settings={settings}
+            currentPoolLength={currentPool.length}
+            segmentMinCount={segmentMinCount}
+            segmentMaxCount={segmentMaxCount}
+            usingSegmentedDifficulty={usingSegmentedDifficulty}
+            segmentOptions={segmentOptions}
+            onDifficultySegmentChange={(segmentIndex) =>
+              setSettings((prev) => ({
+                ...prev,
+                difficultySegmentIndex: segmentIndex,
+              }))
+            }
+            onToggleCityList={() => setShowCityList((prev) => !prev)}
+            onSetIncludeTerritories={(includeTerritories) =>
+              setSettings((prev) => ({ ...prev, includeTerritories }))
+            }
+            startDisabled={startDisabled}
+            warningText={warningText}
+            onStartGame={() => {
+              closeCityListAndResetSearch();
+              onStartGame(startDisabled);
+            }}
+            currentTargetName={currentTargetName}
+            questionText={questionText}
+            feedbackText={feedbackText}
+            feedbackTone={feedbackTone}
+            showContinueHint={showContinueHint && session.status === "locked"}
+            onStopGame={() => {
+              closeCityListAndResetSearch();
+              onStopGame();
+            }}
+            score={session.score}
+            onGoHome={() => {
+              closeCityListAndResetSearch();
+              goToHomeScreen();
+            }}
+            onReplay={() => {
+              closeCityListAndResetSearch();
+              onReplayCurrentSettings(startDisabled);
+            }}
+            showCityList={showCityList}
+            citySearch={citySearch}
+            onCitySearchChange={setCitySearch}
+            cityEntriesForCurrentSettingsCount={cityEntriesForCurrentSettings.length}
+            displayedCityEntries={displayedCityEntries}
+            bestMatchedCityId={bestMatchedCityId}
+            onCloseCityList={() => setShowCityList(false)}
+          />
+        }
+      />
 
     </motion.div>
   );

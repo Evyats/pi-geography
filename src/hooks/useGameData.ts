@@ -5,8 +5,9 @@ import { geoJSON as leafletGeoJson } from "leaflet";
 import { DATA_FILES, LEVELS_FILES, USE_SEGMENTED_DIFFICULTY } from "@/game/constants";
 import { buildRuntimeColoring } from "@/game/map-coloring";
 import type {
+  CitiesCatalog,
   DatasetKey,
-  LevelsSegmentsCatalog,
+  DifficultySegmentsByName,
   LocalityCollection,
   LocalityFeature,
   SettingsState,
@@ -14,7 +15,8 @@ import type {
 import { normalizeIdList, normalizeSearchText, similarityScore } from "@/game/utils";
 
 export function useGameData() {
-  const [segmentsCatalog, setSegmentsCatalog] = useState<LevelsSegmentsCatalog | null>(null);
+  const [segmentsDefinition, setSegmentsDefinition] = useState<DifficultySegmentsByName | null>(null);
+  const [citiesCatalog, setCitiesCatalog] = useState<CitiesCatalog | null>(null);
   const [datasets, setDatasets] = useState<Record<DatasetKey, LocalityCollection | null>>({
     include: null,
     exclude: null,
@@ -23,7 +25,7 @@ export function useGameData() {
     includeTerritories: false,
     difficultySegmentIndex: 0,
   });
-  const [warningText, setWarningText] = useState("");
+  const [loadErrorText, setLoadErrorText] = useState("");
   const [citySearch, setCitySearch] = useState("");
   const [displayedCityEntries, setDisplayedCityEntries] = useState<Array<{ id: string; name: string; score?: number }>>([]);
   const [bestMatchedCityId, setBestMatchedCityId] = useState<string | null>(null);
@@ -45,28 +47,80 @@ export function useGameData() {
     return buildRuntimeColoring(masterDataset.features as LocalityFeature[]);
   }, [activeDataset, datasets.exclude, datasets.include]);
 
+  const cityNameToId = useMemo(() => {
+    const map = new Map<string, string>();
+    const duplicateNames = new Set<string>();
+
+    for (const city of citiesCatalog?.cities ?? []) {
+      const name = city.name_he?.trim();
+      if (!name) continue;
+      const existing = map.get(name);
+      if (existing && existing !== city.id) {
+        duplicateNames.add(name);
+        continue;
+      }
+      map.set(name, city.id);
+    }
+
+    return { map, duplicateNames };
+  }, [citiesCatalog]);
+
+  const unresolvedSegmentNames = useMemo(() => {
+    if (!segmentsDefinition) return [] as string[];
+    const unresolved = new Set<string>();
+
+    for (const segment of segmentsDefinition.segments) {
+      for (const name of segment.city_names) {
+        if (!cityNameToId.map.has(name)) {
+          unresolved.add(name);
+        }
+      }
+    }
+
+    return Array.from(unresolved).sort((a, b) => a.localeCompare(b, "he"));
+  }, [cityNameToId.map, segmentsDefinition]);
+
+  const dataWarningText = useMemo(() => {
+    if (cityNameToId.duplicateNames.size > 0) {
+      return `שמות ערים כפולים בקטלוג: ${Array.from(cityNameToId.duplicateNames).slice(0, 3).join(", ")}${
+        cityNameToId.duplicateNames.size > 3 ? "..." : ""
+      }`;
+    }
+    if (unresolvedSegmentNames.length > 0) {
+      return `ערים לא מזוהות בהגדרות רמות: ${unresolvedSegmentNames.slice(0, 3).join(", ")}${
+        unresolvedSegmentNames.length > 3 ? "..." : ""
+      }`;
+    }
+    return "";
+  }, [cityNameToId.duplicateNames, unresolvedSegmentNames]);
+
+  const warningText = loadErrorText || dataWarningText;
+
   const segmentOptions = useMemo(() => {
-    if (!segmentsCatalog) return [] as Array<{ index: number; label: string; targetCount: number }>;
+    if (!segmentsDefinition) return [] as Array<{ index: number; label: string; targetCount: number }>;
     let running = 0;
-    return segmentsCatalog.segments.map((segment, index) => {
+    return segmentsDefinition.segments.map((segment, index) => {
       running += segment.increment_count;
       return { index, label: segment.label, targetCount: running };
     });
-  }, [segmentsCatalog]);
+  }, [segmentsDefinition]);
 
   const segmentedPools = useMemo(() => {
-    if (!segmentsCatalog) return [] as string[][];
+    if (!segmentsDefinition) return [] as string[][];
     const poolsBySegment: string[][] = [];
-    const running: string[] = [];
+    const runningNames: string[] = [];
 
-    segmentsCatalog.segments.forEach((segment) => {
-      running.push(...segment.cities.map((entry) => entry.id));
-      const normalized = normalizeIdList(running, fullFeatureIndex);
+    segmentsDefinition.segments.forEach((segment) => {
+      runningNames.push(...segment.city_names);
+      const runningIds = runningNames
+        .map((name) => cityNameToId.map.get(name))
+        .filter((id): id is string => Boolean(id));
+      const normalized = normalizeIdList(runningIds, fullFeatureIndex);
       poolsBySegment.push(normalized);
     });
 
     return poolsBySegment;
-  }, [fullFeatureIndex, segmentsCatalog]);
+  }, [cityNameToId.map, fullFeatureIndex, segmentsDefinition]);
 
   const clampedSegmentIndex = useMemo(() => {
     if (segmentedPools.length === 0) return 0;
@@ -79,6 +133,7 @@ export function useGameData() {
     }
     return [];
   }, [clampedSegmentIndex, segmentedPools]);
+
   const segmentMinCount = segmentedPools[0]?.length ?? 0;
   const segmentMaxCount = segmentedPools[segmentedPools.length - 1]?.length ?? 0;
 
@@ -183,25 +238,27 @@ export function useGameData() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [segmentsRes, includeRes, excludeRes] = await Promise.all([
-          fetch(LEVELS_FILES.segmentsCatalog),
+        const [segmentsRes, catalogRes, includeRes, excludeRes] = await Promise.all([
+          fetch(LEVELS_FILES.segmentsByName),
+          fetch(LEVELS_FILES.cityCatalog),
           fetch(DATA_FILES.include),
           fetch(DATA_FILES.exclude),
         ]);
         if (!includeRes.ok || !excludeRes.ok) throw new Error("טעינת הקבצים נכשלה");
-        if (!segmentsRes.ok) {
-          throw new Error("לא נמצא קובץ רמות מקטעים (levels_segments_catalog.json)");
-        }
-        const segmentsPayload = (await segmentsRes.json()) as LevelsSegmentsCatalog;
-        setSegmentsCatalog(segmentsPayload);
+        if (!catalogRes.ok) throw new Error("לא נמצא קובץ cities_catalog.json");
+        if (!segmentsRes.ok) throw new Error("לא נמצא קובץ difficulty_segments_by_name.json");
 
+        const segmentsPayload = (await segmentsRes.json()) as DifficultySegmentsByName;
+        const catalogPayload = (await catalogRes.json()) as CitiesCatalog;
         const includePayload = (await includeRes.json()) as LocalityCollection;
         const excludePayload = (await excludeRes.json()) as LocalityCollection;
 
+        setSegmentsDefinition(segmentsPayload);
+        setCitiesCatalog(catalogPayload);
         setDatasets({ include: includePayload, exclude: excludePayload });
       } catch (error) {
         const message = error instanceof Error ? error.message : "שגיאה לא ידועה";
-        setWarningText(`שגיאה בטעינת נתונים: ${message}`);
+        setLoadErrorText(`שגיאה בטעינת נתונים: ${message}`);
       }
     };
 

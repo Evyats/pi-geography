@@ -43,20 +43,23 @@ node scripts/fetch_real_boundaries.js
 ```
 
 ## Developer Level Configuration
-Use this file to edit level pools with readable city data:
+Difficulty is now split into two files:
 
-- `public/data/levels_catalog.json` (runtime file)
-- `data/levels_catalog.json` (source copy)
+- City metadata:
+  - `public/data/cities_catalog.json` (runtime file)
+  - `data/cities_catalog.json` (source copy)
+- Difficulty segments (human-editable by city name):
+  - `public/data/difficulty_segments_by_name.json` (runtime file)
+  - `data/difficulty_segments_by_name.json` (source copy)
 
-Each level contains objects with:
+City catalog entries contain:
 - `id`
 - `name_he`
 - `population`
 
-To move a city between levels:
-1. Find the city by `name_he`.
-2. Move the full object to another level array (`easy` / `medium` / `hard`).
-3. Keep `id` unchanged.
+To move cities between difficulty segments:
+1. Edit only `city_names` under the relevant segment in `difficulty_segments_by_name.json`.
+2. Use exact Hebrew city names from `cities_catalog.json`.
 
 ## Screenshots
 |  |  |

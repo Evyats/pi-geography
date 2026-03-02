@@ -15,22 +15,26 @@ export type LocalityProps = {
 export type LocalityFeature = Feature<Geometry, LocalityProps>;
 export type LocalityCollection = FeatureCollection<Geometry, LocalityProps>;
 
-export type LevelCatalogEntry = {
+export type CityCatalogEntry = {
   id: string;
   name_he: string;
   population: number | null;
 };
 
-export type SegmentBucket = {
+export type CitiesCatalog = {
+  cities: CityCatalogEntry[];
+};
+
+export type DifficultySegmentDefinition = {
   key: string;
   label: string;
   increment_count: number;
-  cities: LevelCatalogEntry[];
+  city_names: string[];
 };
 
-export type LevelsSegmentsCatalog = {
+export type DifficultySegmentsByName = {
   strategy: "population_desc_increments";
-  segments: SegmentBucket[];
+  segments: DifficultySegmentDefinition[];
 };
 
 export type SettingsState = {
