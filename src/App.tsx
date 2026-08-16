@@ -10,7 +10,6 @@ import { INITIAL_CENTER, INITIAL_ZOOM } from "@/game/constants";
 import { colorFromIndex } from "@/game/map-coloring";
 import type { LocalityFeature } from "@/game/types";
 import { useCityListMapEffects } from "@/hooks/useCityListMapEffects";
-import { useDebugBridge } from "@/hooks/useDebugBridge";
 import { useDocumentTheme } from "@/hooks/useDocumentTheme";
 import { useGameData } from "@/hooks/useGameData";
 import { useGameSession } from "@/hooks/useGameSession";
@@ -73,16 +72,6 @@ export default function App() {
     bestMatchedCityId,
     featureIndex,
   });
-  useDebugBridge({
-    session,
-    settings,
-    leftScreen,
-    fullFeatureIndex,
-    mapZoom,
-    mapCenter,
-    visibleCount: featureIndex.size,
-  });
-
   const closeCityListAndResetSearch = useCallback(() => {
     setShowCityList(false);
     setCitySearch("");

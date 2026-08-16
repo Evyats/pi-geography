@@ -65,7 +65,7 @@ export function SetupControls({
                 data-no-continue="true"
                 onClick={() => onSetIncludeTerritories(!settings.includeTerritories)}
               >
-                לכלול את איזורי פלסטין הכבושה?
+                לכלול את יהודה ושומרון ועזה?
               </button>
               <Switch
                 data-no-continue="true"

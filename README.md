@@ -1,69 +1,57 @@
-# <img src="public/assets/icon.png" alt="App icon" width="28" valign="middle" /> Israel Cities Geography Trainer
+# Israel Geography
 
-Simple Hebrew web game for learning city locations in Israel (React + TypeScript).
+Hebrew web game for learning city locations in Israel. This is a static
+React/Vite app served by the private Raspberry Pi server at `/geography/`; it
+does not need a backend, database, or `systemd` service.
 
-## Prerequisites
-- Node.js 20+
-
-## Run the app
-From the project folder:
+## First local run
 
 ```powershell
+cd pi-geography
 npm install
-npm run dev
-```
-
-Then open:
-
-`http://127.0.0.1:5173` (or the port shown by Vite)
-
-Stop with `Ctrl+C`.
-
-## Open on phone (same Wi-Fi)
-Run:
-
-```powershell
 npm run dev:lan
 ```
 
-Then open on your phone:
-
-`http://<your-computer-local-ip>:5173`
-
-Example:
-`http://192.168.1.42:5173`
-
-If it still fails, allow Node.js/Vite through Windows Firewall for private networks.
-
-## Installation
-Optional (data regeneration):
+## Later local runs
 
 ```powershell
-node scripts/fetch_real_boundaries.js
+cd pi-geography
+npm run dev:lan
 ```
 
-## Developer Level Configuration
-Difficulty is now split into two files:
+Open <http://localhost:5173/geography/> on the computer. On a phone connected
+to the same Wi-Fi, open `http://<computer-ip>:5173/geography/`. Find the
+computer IP with `ipconfig` and allow Node through Windows Firewall on private
+networks if prompted.
 
-- City metadata:
-  - `public/data/cities_catalog.json` (runtime file)
-  - `data/cities_catalog.json` (source copy)
-- Difficulty segments (human-editable by city name):
-  - `public/data/difficulty_segments_by_name.json` (runtime file)
-  - `data/difficulty_segments_by_name.json` (source copy)
+The app is an installable PWA. Its service worker and cached files are scoped
+to `/geography/`, so they cannot intercept the other Pi apps.
 
-City catalog entries contain:
-- `id`
-- `name_he`
-- `population`
+## First Pi setup
 
-To move cities between difficulty segments:
-1. Edit only `city_names` under the relevant segment in `difficulty_segments_by_name.json`.
-2. Use exact Hebrew city names from `cities_catalog.json`.
+After the GitHub Action below has created a green `deploy` branch:
 
-## Screenshots
-|  |  |
-|---|---|
-| ![Screenshot 1](screenshots/1.png) | ![Screenshot 2](screenshots/2.png) |
-| ![Screenshot 3](screenshots/3.png) | ![Screenshot 4](screenshots/4.png) |
-| ![Screenshot 5](screenshots/5.png) | ![Screenshot 6](screenshots/6.png) |
+```bash
+sudo useradd --system --user-group --home-dir /opt/pi-geography --shell /usr/sbin/nologin pi-geography
+sudo install -d -o pi-geography -g pi-geography /opt/pi-geography
+sudo -u pi-geography git clone --branch deploy https://github.com/Evyats/israel-geography.git /opt/pi-geography/app
+sudo /opt/pi-geography/app/deploy.sh
+sudo /opt/pi-home/app/deploy.sh
+```
+
+The final command publishes Pi Home's shared Nginx route for `/geography/`.
+
+## Deploy updates
+
+Push changes to `main`, then check [GitHub Actions](https://github.com/Evyats/israel-geography/actions).
+Wait for **Build deploy branch** to turn green, then run on the Pi:
+
+```bash
+sudo /opt/pi-geography/app/deploy.sh
+```
+
+## Geography data
+
+Runtime data lives under `public/data/`. To change difficulty segments, edit
+`difficulty_segments_by_name.json` using exact Hebrew names from
+`cities_catalog.json`.

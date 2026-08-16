@@ -1,0 +1,58 @@
+name: Build deploy branch
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-deploy-branch
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check frontend
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Publish deploy branch
+        env:
+          SOURCE_SHA: ${{ github.sha }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git show-ref --verify --quiet refs/remotes/origin/deploy; then
+            mv dist "${RUNNER_TEMP}/dist"
+            git switch --create deploy --track origin/deploy
+            git merge --no-edit "${SOURCE_SHA}"
+            git rm -r --ignore-unmatch dist
+            mv "${RUNNER_TEMP}/dist" dist
+          else
+            git switch --force-create deploy "${SOURCE_SHA}"
+          fi
+          git add --force dist
+          if ! git diff --cached --quiet; then
+            git commit -m "Build ${SOURCE_SHA}"
+          fi
+          git push --set-upstream origin deploy
