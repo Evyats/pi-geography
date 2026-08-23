@@ -44,10 +44,20 @@ The final command publishes Pi Home's shared Nginx route for `/geography/`.
 ## Deploy updates
 
 Push changes to `main`, then check [GitHub Actions](https://github.com/Evyats/pi-geography/actions).
-Wait for **Build deploy branch** to turn green, then run on the Pi:
+Wait for **Build deploy branch** to turn green. The Pi checks the successful
+`deploy` branch every five minutes and deploys new builds automatically.
+Manual deployment remains available with:
 
 ```bash
 sudo /opt/pi-geography/app/deploy.sh
+```
+
+The first deployment containing the timer must be run manually once. Inspect
+the automation with:
+
+```bash
+systemctl list-timers pi-geography-update.timer
+sudo journalctl -u pi-geography-update.service -n 50 --no-pager
 ```
 
 ## Geography data
